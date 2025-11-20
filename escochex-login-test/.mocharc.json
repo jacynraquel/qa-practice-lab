@@ -1,0 +1,8 @@
+{
+  "spec": "tests/specs/**/*.spec.js",
+  "timeout": 180000,
+  "require": [
+    "dotenv/config",
+    "./tests/hooks/globalHooks.js"
+  ]
+}

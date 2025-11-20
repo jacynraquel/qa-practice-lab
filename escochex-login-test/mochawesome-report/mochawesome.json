@@ -1,0 +1,244 @@
+{
+  "stats": {
+    "suites": 2,
+    "tests": 4,
+    "passes": 2,
+    "pending": 0,
+    "failures": 2,
+    "start": "2025-11-19T15:28:59.973Z",
+    "end": "2025-11-19T15:30:12.144Z",
+    "duration": 72171,
+    "testsRegistered": 4,
+    "passPercent": 50,
+    "pendingPercent": 0,
+    "other": 0,
+    "hasOther": false,
+    "skipped": 0,
+    "hasSkipped": false
+  },
+  "results": [
+    {
+      "uuid": "8d1dc16b-1f52-45d5-acbb-743af0ec8598",
+      "title": "",
+      "fullFile": "",
+      "file": "",
+      "beforeHooks": [
+        {
+          "title": "\"before all\" hook: beforeAll in \"{root}\"",
+          "fullTitle": "\"before all\" hook: beforeAll in \"{root}\"",
+          "timedOut": false,
+          "duration": 485,
+          "state": null,
+          "speed": null,
+          "pass": false,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "this.timeout?.(180000); // in case Mocha provides this\nbrowser = await chromium.launch({ headless: false });\ncontext = await browser.newContext({\n  ignoreHTTPSErrors: true,\n  viewport: { width: 1280, height: 800 }\n});\nawait context.tracing.start({\n  screenshots: true,\n  snapshots: true,\n  sources: true\n});\npage = await context.newPage();\n// Logging\npage.on('console', m => {\n  if (m.type() === 'error') console.error('[PAGE ERROR]', m.text());\n});\npage.on('requestfailed', req => {\n  const f = req.failure();\n  if (f?.errorText !== 'net::ERR_ABORTED') {\n    console.error('[REQ FAILED]', req.url(), f?.errorText);\n  }\n});",
+          "err": {},
+          "uuid": "8e257779-ad15-46e1-857a-8482ab343e52",
+          "parentUUID": "8d1dc16b-1f52-45d5-acbb-743af0ec8598",
+          "isHook": true,
+          "skipped": false
+        }
+      ],
+      "afterHooks": [
+        {
+          "title": "\"after all\" hook: afterAll in \"{root}\"",
+          "fullTitle": "\"after all\" hook: afterAll in \"{root}\"",
+          "timedOut": false,
+          "duration": 616,
+          "state": null,
+          "speed": null,
+          "pass": false,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "if (context) await context.close();\nif (browser) await browser.close();",
+          "err": {},
+          "uuid": "6562695f-bfc9-4e48-b82d-4972db6b9c3f",
+          "parentUUID": "8d1dc16b-1f52-45d5-acbb-743af0ec8598",
+          "isHook": true,
+          "skipped": false
+        },
+        {
+          "title": "\"after each\" hook: afterEach in \"{root}\"",
+          "fullTitle": "\"after each\" hook: afterEach in \"{root}\"",
+          "timedOut": false,
+          "duration": 917,
+          "state": null,
+          "speed": null,
+          "pass": false,
+          "fail": false,
+          "pending": false,
+          "context": null,
+          "code": "const failed = this.currentTest && this.currentTest.state === 'failed';\nif (!failed) return;\ntry {\n  const dir = path.join('mochawesome-report', 'screenshots');\n  await fs.mkdir(dir, { recursive: true });\n  const safeName = this.currentTest.title.replace(/[^\\w\\d-_]+/g, '_');\n  const screenshotPath = path.join(dir, `${safeName}.png`);\n  await page.screenshot({ path: screenshotPath, fullPage: true });\n  const tracePath = path.join('mochawesome-report', `${safeName}.trace.zip`);\n  await context.tracing.stop({ path: tracePath });\n  addContext(this, {\n    title: 'Screenshot',\n    value: path.join('screenshots', `${safeName}.png`)\n  });\n  addContext(this, {\n    title: 'Playwright Trace',\n    value: `${safeName}.trace.zip`\n  });\n  await context.tracing.start({\n    screenshots: true,\n    snapshots: true,\n    sources: true\n  });\n} catch (err) {\n  console.error('Failed to capture screenshot or trace:', err.message);\n}",
+          "err": {},
+          "uuid": "19631eeb-23dc-4ba5-a1d5-96f518da6eee",
+          "parentUUID": "8d1dc16b-1f52-45d5-acbb-743af0ec8598",
+          "isHook": true,
+          "skipped": false
+        }
+      ],
+      "tests": [],
+      "suites": [
+        {
+          "uuid": "728dfeb9-a751-4809-af34-61600cfbbe49",
+          "title": "Login Tests",
+          "fullFile": "D:\\Documents\\Escochecks-Builds\\qa-practice-lab\\escochex-login-test\\tests\\specs\\login.ui.spec.js",
+          "file": "\\tests\\specs\\login.ui.spec.js",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should load the login page",
+              "fullTitle": "Login Tests should load the login page",
+              "timedOut": false,
+              "duration": 21839,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const page = getPage();\nconst loginPage = new LoginPage(page, BASE_URL);\nconst resp = await loginPage.goto(1);\nexpect(resp?.status()).to.be.oneOf([200, 304]);\nawait loginPage.waitForReady();",
+              "err": {},
+              "uuid": "ad66384a-f3c5-47ab-95eb-c88b5b8df5cb",
+              "parentUUID": "728dfeb9-a751-4809-af34-61600cfbbe49",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should login successfully",
+              "fullTitle": "Login Tests should login successfully",
+              "timedOut": false,
+              "duration": 2060,
+              "state": "passed",
+              "speed": "slow",
+              "pass": true,
+              "fail": false,
+              "pending": false,
+              "context": null,
+              "code": "const page = getPage();\nconst loginPage = new LoginPage(page, BASE_URL);\nawait loginPage.loginWithValidCredentials(USER_EMAIL, USER_PASSWORD);\nconst url = page.url().toLowerCase();\nexpect(url).to.not.include('account/login');",
+              "err": {},
+              "uuid": "51b7f190-5ca9-46b8-a9d1-a390be877a6b",
+              "parentUUID": "728dfeb9-a751-4809-af34-61600cfbbe49",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [
+            "ad66384a-f3c5-47ab-95eb-c88b5b8df5cb",
+            "51b7f190-5ca9-46b8-a9d1-a390be877a6b"
+          ],
+          "failures": [],
+          "pending": [],
+          "skipped": [],
+          "duration": 23899,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 120000
+        },
+        {
+          "uuid": "9bfe391b-a8f0-42ea-8a10-129ce8a8f4b7",
+          "title": "Navigation UI Smoke",
+          "fullFile": "D:\\Documents\\Escochecks-Builds\\qa-practice-lab\\escochex-login-test\\tests\\specs\\navigation.ui.spec.js",
+          "file": "\\tests\\specs\\navigation.ui.spec.js",
+          "beforeHooks": [],
+          "afterHooks": [],
+          "tests": [
+            {
+              "title": "should show the dashboard after login",
+              "fullTitle": "Navigation UI Smoke should show the dashboard after login",
+              "timedOut": false,
+              "duration": 11600,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": "[\n  {\n    \"title\": \"Screenshot\",\n    \"value\": \"screenshots\\\\should_show_the_dashboard_after_login.png\"\n  },\n  {\n    \"title\": \"Playwright Trace\",\n    \"value\": \"should_show_the_dashboard_after_login.trace.zip\"\n  }\n]",
+              "code": "const page = getPage();\nconst loginPage = new LoginPage(page, BASE_URL);\nconst dashboardPage = new DashboardPage(page);\nawait loginPage.loginWithValidCredentials(USER_EMAIL, USER_PASSWORD);\nconst loaded = await dashboardPage.isLoaded();\n // 1. Navigate\nawait page.click('text=Dashboard'); // or your menu selector\n // 2. Quick URL sanity check (optional but helpful)\nawait expect(page).toHaveURL(/Dashboard/);\n  \n // 3. Assert key elements using this.sel\nawait expect(page.locator(this.sel.dashboardHeader)).toBeVisible();\nawait expect(page.locator(this.sel.totalEmployeeCard)).toBeVisible();\nawait expect(page.locator(this.sel.todosSection)).toBeVisible();",
+              "err": {
+                "message": "Error: Invalid Chai property: toHaveURL",
+                "estack": "Error: Invalid Chai property: toHaveURL\n    at Object.proxyGetter [as get] (file:///D:/Documents/Escochecks-Builds/qa-practice-lab/escochex-login-test/node_modules/chai/index.js:1654:17)\n    at Context.<anonymous> (file:///D:/Documents/Escochecks-Builds/qa-practice-lab/escochex-login-test/tests/specs/navigation.ui.spec.js:25:23)",
+                "diff": null
+              },
+              "uuid": "f21f8fce-4edc-44a4-aaf8-e81f8718a688",
+              "parentUUID": "9bfe391b-a8f0-42ea-8a10-129ce8a8f4b7",
+              "isHook": false,
+              "skipped": false
+            },
+            {
+              "title": "should navigate to Employees page from the sidebar",
+              "fullTitle": "Navigation UI Smoke should navigate to Employees page from the sidebar",
+              "timedOut": false,
+              "duration": 32826,
+              "state": "failed",
+              "speed": null,
+              "pass": false,
+              "fail": true,
+              "pending": false,
+              "context": "[\n  {\n    \"title\": \"Screenshot\",\n    \"value\": \"screenshots\\\\should_navigate_to_Employees_page_from_the_sidebar.png\"\n  },\n  {\n    \"title\": \"Playwright Trace\",\n    \"value\": \"should_navigate_to_Employees_page_from_the_sidebar.trace.zip\"\n  }\n]",
+              "code": "const page = getPage();\nconst loginPage = new LoginPage(page, BASE_URL);\nconst nav = new SidebarNav(page);\nawait loginPage.loginWithValidCredentials(USER_EMAIL, USER_PASSWORD);\nawait nav.goToEmployees();\n// later you can assert with EmployeesPage here",
+              "err": {
+                "message": "TimeoutError: page.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('nav').locator('text=Employees')\n",
+                "estack": "page.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('nav').locator('text=Employees')\n\n    at SidebarNav.goToEmployees (tests\\pages\\SidebarNav.js:20:21)\n    at Context.<anonymous> (tests\\specs\\navigation.ui.spec.js:40:15)",
+                "diff": null
+              },
+              "uuid": "1b398725-1aa7-4dd8-888a-b2208d532663",
+              "parentUUID": "9bfe391b-a8f0-42ea-8a10-129ce8a8f4b7",
+              "isHook": false,
+              "skipped": false
+            }
+          ],
+          "suites": [],
+          "passes": [],
+          "failures": [
+            "f21f8fce-4edc-44a4-aaf8-e81f8718a688",
+            "1b398725-1aa7-4dd8-888a-b2208d532663"
+          ],
+          "pending": [],
+          "skipped": [],
+          "duration": 44426,
+          "root": false,
+          "rootEmpty": false,
+          "_timeout": 120000
+        }
+      ],
+      "passes": [],
+      "failures": [],
+      "pending": [],
+      "skipped": [],
+      "duration": 0,
+      "root": true,
+      "rootEmpty": true,
+      "_timeout": 120000
+    }
+  ],
+  "meta": {
+    "mocha": {
+      "version": "11.7.4"
+    },
+    "mochawesome": {
+      "options": {
+        "quiet": false,
+        "reportFilename": "mochawesome",
+        "saveHtml": true,
+        "saveJson": true,
+        "consoleReporter": "spec",
+        "useInlineDiffs": false,
+        "code": true
+      },
+      "version": "7.1.4"
+    },
+    "marge": {
+      "options": {
+        "reportDir": "mochawesome-report",
+        "inlineAssets": "true"
+      },
+      "version": "6.3.0"
+    }
+  }
+}
