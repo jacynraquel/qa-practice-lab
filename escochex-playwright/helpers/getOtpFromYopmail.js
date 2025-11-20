@@ -4,21 +4,40 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 module.exports.getLatestOtpFromYopmail = async (page, inboxName) =>{
-  const actualInbox = inboxName || 'escochex.qa';
+
+  if (!inboxName) {
+    throw new Error('Inbox name missing! Make sure you passed inboxName into getLatestOtpFromYopmail.');
+  }
+
   const context = page.context();
-
   const yopPage = await context.newPage();
-  await yopPage.goto(`https://yopmail.com/?${actualInbox}`);
 
-  // 1. LEFT frame: click newest email
+  // Open the specific inbox
+  await yopPage.goto(`https://yopmail.com/?${inboxName}`);
+
+  // 1. LEFT FRAME: inbox list
   const inboxFrame = yopPage.frameLocator('#ifinbox');
 
-  // Wait for at least one message row to appear
-  const firstMessage = inboxFrame.locator('div.m').first();
-  await firstMessage.waitFor({ timeout: 20000 });
-  await firstMessage.click();
+  // Wait until at least one email row is present
+  const messages = inboxFrame.locator('div.m');
+  await messages.first().waitFor({ timeout: 20000 });
 
-  // 2. RIGHT frame: read the email body
+  // Optional: debug what we're seeing
+  const count = await messages.count();
+  console.log(`Found ${count} messages in inbox: ${inboxName}`);
+  for (let i = 0; i < Math.min(count, 5); i++) {
+    const preview = (await messages.nth(i).innerText()).slice(0, 80);
+    console.log(`Row ${i}: ${preview}`);
+  }
+
+  // Click the *visually* top row.
+  // If YOPmail shows newest at the top → nth(0) / first()
+  // If it shows newest at the bottom → nth(count-1) / last()
+
+  await messages.nth(0).click();        // 👈 newest on top case
+  // await messages.last().click();    // 👈 switch to this if DOM is reversed
+
+  // 2. RIGHT FRAME: email body
   const mailFrame = yopPage.frameLocator('#ifmail');
   const mailBody = mailFrame.locator('#mail');
   await mailBody.waitFor({ timeout: 20000 });
@@ -33,6 +52,6 @@ module.exports.getLatestOtpFromYopmail = async (page, inboxName) =>{
 
   const otp = match[1];
 
-  await yopPage.close(); // optional
+  await yopPage.close();   // optional
   return otp;
 }

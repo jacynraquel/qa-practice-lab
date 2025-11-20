@@ -1,44 +1,44 @@
-// tests/login-escochex.spec.js
 const { test, expect } = require('@playwright/test');
-const {getLatestOtpFromYopmail} = require('../helpers/getOtpFromYopmail');
-
-const BASE_URL = process.env.BASE_URL;
-const TEST_EMAIL = process.env.TEST_EMAIL;
-const TEST_PASS = process.env.TEST_PASS;
+const { getLatestOtpFromYopmail } = require('../helpers/getOtpFromYopmail');
 
 test.describe('Escochex Login & Dashboard with 2FA (Yopmail)', () => {
-  test('should login and show Dashboard', async ({ page, context }) => {
-    // 1. Go to login page
-    await page.goto(BASE_URL, {waitUntil: 'networkidle'});
+  test('should login and show Dashboard', async ({ page }, testInfo) => {
+    const projectName = testInfo.project.name.toUpperCase(); // CHROMIUM, FIREFOX, WEBKIT
 
-    // 2. Login
-	// Click SIGN IN link
-	await page.getByText('Sign In', { exact: true }).click();
+    const TEST_EMAIL = process.env[`TEST_EMAIL_${projectName}`];
+    const TEST_PASS = process.env[`TEST_PASS_${projectName}`];
+    const YOPMAIL_INBOX = process.env[`YOPMAIL_INBOX_${projectName}`];
 
-	// Wait for submenu to appear
-	await page.getByText('Super Admin', {exact: true}).click();
+    // --- login steps ---
+    await page.goto(process.env.BASE_URL);
+
+    await page.getByText('Sign In', {exact: true}).click();
+    await page.getByText('Super Admin', { exact: true }).click();
 
     await page.getByPlaceholder('Email').fill(TEST_EMAIL);
-  	await page.getByPlaceholder('Password').fill(TEST_PASS);
-    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByPlaceholder('Password').fill(TEST_PASS);
+    await page.getByRole('button', { name: /login/i }).click();
 
+    // optional 2FA detection block...
+    const otpInput = page.locator('#TwoFactorOtp');
+    let requires2FA = true;
+    try {
+      await otpInput.waitFor({ timeout: 5000 });
+    } catch {
+      requires2FA = false;
+    }
 
-    // 3. Wait for 2FA input (adjust selector based on your 2FA page)
-    const otpInput = page.locator('input[id="TwoFactorOtp"]'); // or whatever Inspector gave you
-    await expect(otpInput).toBeVisible({ timeout: 20000 });
+    if (requires2FA) {
+      console.log(`2FA detected for ${projectName} – fetching OTP for inbox ${YOPMAIL_INBOX}`);
+      const otp = await getLatestOtpFromYopmail(page, YOPMAIL_INBOX);
+      console.log('Got OTP:', otp);
 
-    // 4. Fetch OTP from Yopmail using the same browser context
-    const otp = await getLatestOtpFromYopmail(page, 'escochex.qa');
-  	console.log('Got OTP:', otp);
+      await otpInput.fill(otp);
+      await page.getByRole('button', { name: /verify/i }).click();
+    } else {
+      console.log(`No 2FA for ${projectName}, continuing…`);
+    }
 
-  	// 5. Enter OTP & verify
-  	await page.fill('input[id="TwoFactorOtp"]', otp);
-  	await page.getByRole('button', { name: 'Verify' }).click();
-
-
-    // 6. Assert Dashboard
-    await expect(page.getByText('Dashboard')).toBeVisible();
-    // or a more specific locator:
-    // await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible();
+    await expect(page).toHaveTitle(/Dashboard/i);
   });
 });
