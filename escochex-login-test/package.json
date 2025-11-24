@@ -1,0 +1,28 @@
+{
+  "name": "escochex-login-test",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "mocha \"tests/**/*.spec.js\" --timeout 120000 --reporter mochawesome --reporter-option reportDir=mochawesome-report,inlineAssets=true"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "chai": "^6.2.0",
+    "mocha": "^11.7.4",
+    "mochawesome": "^7.1.4",
+    "mochawesome-merge": "^4.4.1",
+    "mochawesome-report-generator": "^6.3.0",
+    "playwright": "^1.56.1"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "selenium-webdriver": "^4.38.0"
+  }
+}
