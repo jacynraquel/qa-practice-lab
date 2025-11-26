@@ -3,6 +3,8 @@ const { getOtpFromGmailForProject } = require('../helpers/otpHelperGmail');
 // const { loginWithOtpYopmail } = require('../helpers/loginWithOtpYopmail');
 require('dotenv').config();
 
+test.describe.configure({ mode: 'serial' });
+
 test.describe('Escochex Login & Dashboard with 2FA (Yopmail)', () => {
   test('should login and show Dashboard', async ({ page }, testInfo) => {
     test.setTimeout(90000); // 90 seconds
