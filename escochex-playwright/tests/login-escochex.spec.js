@@ -1,8 +1,11 @@
 const { test, expect } = require('@playwright/test');
-const { getLatestOtpFromYopmail } = require('../helpers/getOtpFromYopmail');
+const { getOtpFromGmailForProject } = require('../helpers/otpHelperGmail');
+// const { loginWithOtpYopmail } = require('../helpers/loginWithOtpYopmail');
+require('dotenv').config();
 
 test.describe('Escochex Login & Dashboard with 2FA (Yopmail)', () => {
   test('should login and show Dashboard', async ({ page }, testInfo) => {
+    test.setTimeout(90000); // 90 seconds
     const projectName = testInfo.project.name.toUpperCase(); // CHROMIUM, FIREFOX, WEBKIT
 
     const TEST_EMAIL = process.env[`TEST_EMAIL_${projectName}`];
@@ -21,22 +24,24 @@ test.describe('Escochex Login & Dashboard with 2FA (Yopmail)', () => {
 
     // optional 2FA detection block...
     const otpInput = page.locator('#TwoFactorOtp');
-    let requires2FA = true;
+    let requires2FA;
     try {
-      await otpInput.waitFor({ timeout: 5000 });
+      // If this finds the OTP input within 10s, we consider 2FA required
+      await otpInput.waitFor({ timeout: 40000 });
+      requires2FA = true;
+      console.log(`2FA screen detected for ${projectName}`);
     } catch {
       requires2FA = false;
     }
 
     if (requires2FA) {
-      console.log(`2FA detected for ${projectName} – fetching OTP for inbox ${YOPMAIL_INBOX}`);
-      const otp = await getLatestOtpFromYopmail(page, YOPMAIL_INBOX);
-      console.log('Got OTP:', otp);
+      console.log(`Fetching GMAIL OTP for ${projectName}...`);
+
+      const otp = await getOtpFromGmailForProject(projectName);
+      console.log(`Using OTP for ${projectName}:`, otp);
 
       await otpInput.fill(otp);
       await page.getByRole('button', { name: /verify/i }).click();
-    } else {
-      console.log(`No 2FA for ${projectName}, continuing…`);
     }
 
     await expect(page).toHaveTitle(/Dashboard/i);
