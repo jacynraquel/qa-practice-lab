@@ -1,51 +1,20 @@
+// tests/login-escochex.spec.js
 const { test, expect } = require('@playwright/test');
-const { getOtpFromGmailForProject } = require('../helpers/otpHelperGmail');
-// const { loginWithOtpYopmail } = require('../helpers/loginWithOtpYopmail');
-require('dotenv').config();
+const { loginWithOtp } = require('../helpers/loginWithOtp');
 
-test.describe.configure({ mode: 'serial' });
+test.describe('Escochex Login with OTP', () => {
+  test('should log in successfully using username + password + OTP', async ({ page }, testInfo) => {
+    console.log('=== Escochex login test START ===');
+    console.log('Running project:', testInfo.project.name);
 
-test.describe('Escochex Login & Dashboard with 2FA (Yopmail)', () => {
-  test('should login and show Dashboard', async ({ page }, testInfo) => {
-    test.setTimeout(90000); // 90 seconds
-    const projectName = testInfo.project.name.toUpperCase(); // CHROMIUM, FIREFOX, WEBKIT
+    // 1. Perform the full login flow (username + password + OTP from IMAP)
+    await loginWithOtp(page, testInfo);
 
-    const TEST_EMAIL = process.env[`TEST_EMAIL_${projectName}`];
-    const TEST_PASS = process.env[`TEST_PASS_${projectName}`];
-    const YOPMAIL_INBOX = process.env[`YOPMAIL_INBOX_${projectName}`];
+    // 2. Assert that login worked (adjust selector to your real dashboard)
+    // Example: look for "Dashboard" text or a known element in the home page
+    const dashboardHeader = page.getByText('Dashboard');
+    await expect(dashboardHeader).toBeVisible({ timeout: 15000 });
 
-    // --- login steps ---
-    await page.goto(process.env.BASE_URL);
-
-    await page.getByText('Sign In', {exact: true}).click();
-    await page.getByText('Super Admin', { exact: true }).click();
-
-    await page.getByPlaceholder('Email').fill(TEST_EMAIL);
-    await page.getByPlaceholder('Password').fill(TEST_PASS);
-    await page.getByRole('button', { name: /login/i }).click();
-
-    // optional 2FA detection block...
-    const otpInput = page.locator('#TwoFactorOtp');
-    let requires2FA;
-    try {
-      // If this finds the OTP input within 10s, we consider 2FA required
-      await otpInput.waitFor({ timeout: 40000 });
-      requires2FA = true;
-      console.log(`2FA screen detected for ${projectName}`);
-    } catch {
-      requires2FA = false;
-    }
-
-    if (requires2FA) {
-      console.log(`Fetching GMAIL OTP for ${projectName}...`);
-
-      const otp = await getOtpFromGmailForProject(projectName);
-      console.log(`Using OTP for ${projectName}:`, otp);
-
-      await otpInput.fill(otp);
-      await page.getByRole('button', { name: /verify/i }).click();
-    }
-
-    await expect(page).toHaveTitle(/Dashboard/i);
+    console.log('✅ Escochex login test PASSED for project:', testInfo.project.name);
   });
 });

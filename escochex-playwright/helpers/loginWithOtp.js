@@ -1,58 +1,50 @@
-// tests/helpers/loginWithOtp.js
-const { getOtpFromGmailForProject } = require('./otpHelperGmail');
+// helpers/loginWithOtp.js
 require('dotenv').config();
-
+const { waitForNewOtp } = require('../helpers/otpHelperGmail');
 /**
- * Logs in to Escochex using username + password + OTP (from IMAP)
- * 
+ * Logs in using username + password + OTP (from IMAP)
+ *
  * @param {import('@playwright/test').Page} page
  * @param {import('@playwright/test').TestInfo} testInfo
  */
 async function loginWithOtp(page, testInfo) {
-  const projectName = testInfo.project.name.toUpperCase(); // CHROMIUM / FIREFOX / WEBKIT
 
-  const baseUrl = process.env.BASE_URL;
-  if (!baseUrl) {
-    throw new Error('BASE_URL is not set in .env');
-  }
+  const projectName = testInfo.project.name.toUpperCase(); // CHROMIUM/FIREFOX/WEBKIT
+  const username =
+    process.env[`TEST_EMAIL_${projectName}`] || process.env.ESC_LOGIN_USER;
+  const password = process.env.TEST_EMAIL_PASS;
 
-  // 1. Go to login page
-  await page.goto(baseUrl);
+  console.log('=== loginWithOtp START ===');
+  console.log('Project:', projectName);
+  console.log('Login username (masked):', username?.replace(/.(?=.{3})/g, '*'));
 
-  // 2. Fill username/password for this browser
-  const emailEnvKey = `YOPMAIL_INBOX_${projectName}`;
-  const passEnvKey = `TEST_PASS_${projectName}`;
-  const username = process.env[emailEnvKey];
-  const password = process.env[passEnvKey];
+  await page.goto(process.env.BASE_URL);
+  console.log('Navigated to login URL:', process.env.BASE_URL);
 
-  if (!username || !password) {
-    throw new Error(
-      `Missing ${emailEnvKey} or ${passEnvKey} in .env for project ${projectName}`
-    );
-  }
+  await page.getByText(/sign in/i).click();
+  await page.getByText(/super admin/i).click();
 
-  // TODO: adjust selectors to match your login page
-  await page.getByPlaceholder('Email').fill(username);
-  await page.getByPlaceholder('Password').fill(password);
-  await page.getByRole('button', { name: /sign in|log in/i }).click();
+  await page.getByPlaceholder('Email', username);
+  await page.getByPlaceholder('Password', password);
+  console.log('Filled username & password.');
 
-  // 3. Wait for OTP screen to show up
-  // Adjust selector(s) to match your OTP input
-  const otpInput = page.getByRole('textbox', { name: /otp|code/i }).first();
-  await otpInput.waitFor({ state: 'visible' });
+  // timestamp right before triggering OTP
+  const since = new Date();
+  console.log('Timestamp BEFORE clicking "Send OTP":', since.toISOString());
 
-  // 4. Fetch OTP via IMAP
+  const otpInput = await page.getByPlaceholder(/Enter OTP here/i);
+  console.log('Clicked "Send OTP", waiting for email...');
 
-  const otp = await getOtpFromGmailForProject(projectName);
-  console.log(`[${projectName}] Using OTP:`, otp);
+  const otp = await waitForNewOtp({ projectName, since });
 
-  await otpInput.fill(otp);
+  console.log('Received OTP (masked):', otp.replace(/\d(?=\d{2})/g, '*'));
 
-  // 5. Submit OTP
-  await page.getByRole('button', { name: /verify|submit|continue/i }).click();
+  await page.fill(otpInput, otp);
+  console.log('Filled OTP input.');
 
-  // 6. Wait for dashboard (sanity check selector – adjust as needed)
-  await page.getByText('Dashboard', { exact: false }).waitFor({ timeout: 15000 });
+  await page.getByRole('button',(/verify/i)).click();
+  console.log('Clicked Verify.');
+  console.log('=== loginWithOtp END ===');
 }
 
 module.exports = { loginWithOtp };
